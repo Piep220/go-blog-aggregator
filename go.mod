@@ -1,3 +1,3 @@
-module github.com/Piep22/go-blog-aggregator
+module github.com/Piep220/go-blog-aggregator
 
 go 1.24.5
