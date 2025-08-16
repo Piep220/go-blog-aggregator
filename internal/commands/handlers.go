@@ -62,3 +62,40 @@ func HandlerRegister(s *State, cmd Command) error {
 	return nil
 }
 
+func HandlerReset(s *State, cmd Command) error {
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("reset command requires no args")
+	}
+
+	ctx := context.Background()
+	err := s.Db.DeleteAllUsers(ctx)
+	if err != nil {
+		fmt.Printf("error deleting users: %s", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Database has been reset.")
+	return nil
+}
+
+func HandlerUsers(s *State, cmd Command) error {
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("users command requires no args")
+	}
+
+	ctx := context.Background()
+	users, err := s.Db.GetUsers(ctx)
+	if err != nil {
+		fmt.Printf("error getting users: %s", err)
+		os.Exit(1)
+	}
+
+	for _, user := range users {
+		if s.Cfg.CurrentUserName == user {
+			fmt.Printf("* %s (current)\n", user)
+		} else {
+			fmt.Printf("* %s\n", user)
+		}
+	}
+	return nil
+}

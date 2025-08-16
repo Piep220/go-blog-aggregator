@@ -8,6 +8,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+/*
+Need to goose postgress down/up for submits.
+Config in ~/.gatorconfig.json
+*/
+
+
 //Moved error handelling etc to main_helpers, to clarify.
 
 func main() {
@@ -18,6 +24,8 @@ func main() {
 	cmds := commands.NewCommands()
 	cmds.Register("login", commands.HandlerLogin)
 	cmds.Register("register", commands.HandlerRegister)
+	cmds.Register("reset", commands.HandlerReset)
+	cmds.Register("users", commands.HandlerUsers)
 
 	db := dbOpen(cfg)
 	dbQueries := database.New(db)
