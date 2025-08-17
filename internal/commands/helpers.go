@@ -1,7 +1,9 @@
 package commands
 
 import (
+	"fmt"
 	"strings"
+	"github.com/Piep220/go-blog-aggregator/internal/database"
 )
 
 // cleanInput processes the input text by converting it to lowercase and splitting it into words.
@@ -11,4 +13,9 @@ func cleanInput(text string) []string {
 	words := strings.Fields(lowerText)
 
 	return words
+}
+
+func printUser(user database.User) {
+	fmt.Printf(" * ID:      %v\n", user.ID)
+	fmt.Printf(" * Name:    %v\n", user.Name)
 }

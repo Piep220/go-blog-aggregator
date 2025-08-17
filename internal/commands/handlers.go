@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 	"encoding/json"
 	"github.com/Piep220/go-blog-aggregator/internal/database"
@@ -21,7 +20,6 @@ func HandlerLogin(s *State, cmd Command) error {
 	_, err := s.Db.GetUser(ctx, userName)
 	if err != nil {
 		fmt.Printf("user not found, with error: %s\n", err)
-		os.Exit(1)
 	}
 
 	err = s.Cfg.SetUser(userName)
@@ -33,7 +31,7 @@ func HandlerLogin(s *State, cmd Command) error {
 	return nil
 }
 
-func HandlerRegister(s *State, cmd Command) error {
+func HandlerRegisterUser(s *State, cmd Command) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("login command requires only a username")
 	}
@@ -50,7 +48,6 @@ func HandlerRegister(s *State, cmd Command) error {
 	_, err := s.Db.CreateUser(ctx, newUser)
 	if err != nil {
 		fmt.Printf("error adding user: %s", err)
-		os.Exit(1)
 	}
 
 	s.Cfg.SetUser(cmd.Args[0])
@@ -62,23 +59,7 @@ func HandlerRegister(s *State, cmd Command) error {
 	return nil
 }
 
-func HandlerReset(s *State, cmd Command) error {
-	if len(cmd.Args) != 0 {
-		return fmt.Errorf("reset command requires no args")
-	}
-
-	ctx := context.Background()
-	err := s.Db.DeleteAllUsers(ctx)
-	if err != nil {
-		fmt.Printf("error deleting users: %s", err)
-		os.Exit(1)
-	}
-
-	fmt.Println("Database has been reset.")
-	return nil
-}
-
-func HandlerUsers(s *State, cmd Command) error {
+func HandlerPrintUsers(s *State, cmd Command) error {
 	if len(cmd.Args) != 0 {
 		return fmt.Errorf("users command requires no args")
 	}
@@ -87,7 +68,6 @@ func HandlerUsers(s *State, cmd Command) error {
 	users, err := s.Db.GetUsers(ctx)
 	if err != nil {
 		fmt.Printf("error getting users: %s", err)
-		os.Exit(1)
 	}
 
 	for _, user := range users {

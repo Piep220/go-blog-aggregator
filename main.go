@@ -23,20 +23,22 @@ func main() {
 
 	cmds := commands.NewCommands()
 	cmds.Register("login", commands.HandlerLogin)
-	cmds.Register("register", commands.HandlerRegister)
+	cmds.Register("register", commands.HandlerRegisterUser)
 	cmds.Register("reset", commands.HandlerReset)
-	cmds.Register("users", commands.HandlerUsers)
+	cmds.Register("users", commands.HandlerPrintUsers)
 
 	db := dbOpen(cfg)
+	defer db.Close()
+
 	dbQueries := database.New(db)
 
-	s := &commands.State{
+	programState := &commands.State{
 		Cfg: cfg,
 		Db:  dbQueries,
 	}
 
 
-	err := cmds.Run(s, cmd)
+	err := cmds.Run(programState, cmd)
 	if err != nil {
 		fmt.Printf("error running command: %s", err)
 		os.Exit(1)

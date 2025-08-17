@@ -1,5 +1,5 @@
 package commands
 
 func NewCommands() *commands {
-	return &commands{m: make(map[string]handlerFn)}
+	return &commands{registeredCommands: make(map[string]handlerFn)}
 }

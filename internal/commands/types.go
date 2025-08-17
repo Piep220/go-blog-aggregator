@@ -5,6 +5,7 @@ import (
 	"github.com/Piep220/go-blog-aggregator/internal/database"
 )
 
+//Program's internal state struct
 type State struct {
 	Cfg  *config.Config
 	Db   *database.Queries
@@ -15,8 +16,10 @@ type Command struct {
 	Args    []string
 }
 
+//Template for handlerFunctions
 type handlerFn func(s *State, cmd Command) error
 
+//List of commands available to run
 type commands struct {
-	m 		map[string]handlerFn
+	registeredCommands 		map[string]handlerFn
 }
