@@ -26,6 +26,7 @@ func main() {
 	cmds.Register("register", commands.HandlerRegisterUser)
 	cmds.Register("reset", commands.HandlerReset)
 	cmds.Register("users", commands.HandlerPrintUsers)
+	cmds.Register("agg", commands.HandlerAggregator)
 
 	db := dbOpen(cfg)
 	defer db.Close()
