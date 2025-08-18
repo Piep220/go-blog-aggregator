@@ -27,6 +27,8 @@ func main() {
 	cmds.Register("reset", commands.HandlerReset)
 	cmds.Register("users", commands.HandlerPrintUsers)
 	cmds.Register("agg", commands.HandlerAggregator)
+	cmds.Register("addfeed", commands.HandlerAddFeed)
+	cmds.Register("feeds", commands.HandlerListFeeds)
 
 	db := dbOpen(cfg)
 	defer db.Close()
@@ -37,7 +39,6 @@ func main() {
 		Cfg: cfg,
 		Db:  dbQueries,
 	}
-
 
 	err := cmds.Run(programState, cmd)
 	if err != nil {
