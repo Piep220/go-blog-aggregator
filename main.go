@@ -29,6 +29,8 @@ func main() {
 	cmds.Register("agg", commands.HandlerAggregator)
 	cmds.Register("addfeed", commands.HandlerAddFeed)
 	cmds.Register("feeds", commands.HandlerListFeeds)
+	cmds.Register("follow", commands.HandlerFollow)
+	cmds.Register("following", commands.HandlerFollowing)
 
 	db := dbOpen(cfg)
 	defer db.Close()
