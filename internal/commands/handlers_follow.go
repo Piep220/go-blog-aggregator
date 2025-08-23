@@ -44,6 +44,7 @@ func HandlerFollow(s *State, cmd Command, user database.User) error {
 
 	fmt.Printf("\nCreated new feed-follow relation:\n")
 	fmt.Printf("Feed: %s\nUser: %s\n", feedID.Name, user.Name)
+
 	return nil
 }
 
@@ -70,5 +71,35 @@ func HandlerFollowing(s *State, cmd Command, user database.User) error {
 		fmt.Printf("%s\n", follow.FeedName.String)
 	}
 	fmt.Printf("----- END OF LIST -----\n")
+
+	return nil
+}
+
+//Unfollow removes feed/follow from url for MiddlewareLoggedIn user
+func HandlerUnfollow(s *State, cmd Command, user database.User) error {
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("unfollow command requires one arg: url")
+	}
+
+	//Check if URL is valid
+	_, err := url.Parse(cmd.Args[0])
+	if err != nil {
+		return fmt.Errorf("error parsing URL, please check, %w", err)
+	}
+
+	ctx := context.Background()
+	ffParams := database.DeleteFeedFollowParams{
+		UserID: user.ID,
+		Url: 	cmd.Args[0],
+	}
+
+	err = s.Db.DeleteFeedFollow(ctx,ffParams)
+	if err != nil {
+		return fmt.Errorf("error deleting feedfollow record with: UserName: %s FeedURL:  %s", user.Name, cmd.Args[0])
+	}
+
+	fmt.Printf("Deleted feed-follow relation:\n")
+	fmt.Printf("Feed: %s\nUser: %s\n", cmd.Args[0], user.Name)
+
 	return nil
 }
