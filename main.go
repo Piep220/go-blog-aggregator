@@ -27,10 +27,10 @@ func main() {
 	cmds.Register("reset", commands.HandlerReset)
 	cmds.Register("users", commands.HandlerPrintUsers)
 	cmds.Register("agg", commands.HandlerAggregator)
-	cmds.Register("addfeed", commands.HandlerAddFeed)
+	cmds.Register("addfeed", commands.MiddlewareLoggedIn(commands.HandlerAddFeed))
 	cmds.Register("feeds", commands.HandlerListFeeds)
-	cmds.Register("follow", commands.HandlerFollow)
-	cmds.Register("following", commands.HandlerFollowing)
+	cmds.Register("follow", commands.MiddlewareLoggedIn(commands.HandlerFollow))
+	cmds.Register("following", commands.MiddlewareLoggedIn(commands.HandlerFollowing))
 
 	db := dbOpen(cfg)
 	defer db.Close()

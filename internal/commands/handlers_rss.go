@@ -32,7 +32,8 @@ func HandlerAggregator(s *State, cmd Command) error {
 	return nil
 }
 
-func HandlerAddFeed(s *State, cmd Command) error {
+//Add feed by URL for MiddlewareLoggedIn user
+func HandlerAddFeed(s *State, cmd Command, user database.User) error {
 	if len(cmd.Args) != 2 {
 		return fmt.Errorf("addfeed command requires two args, 'name' then 'url'")
 	}
@@ -44,11 +45,6 @@ func HandlerAddFeed(s *State, cmd Command) error {
 	}
 
 	ctx := context.Background()
-	currentUser := s.Cfg.CurrentUserName
-	userID, err := s.Db.GetUser(ctx, currentUser)
-	if err != nil {
-		return fmt.Errorf("error getting current user's ID, %w", err)
-	}
 
 	nowTime := time.Now()
 	newFeedID := uuid.New()
@@ -58,7 +54,7 @@ func HandlerAddFeed(s *State, cmd Command) error {
 		UpdatedAt: nowTime,
 		Name:	   cmd.Args[0],
 		Url: 	   cmd.Args[1],
-		UserID:    userID.ID,
+		UserID:    user.ID,
 	}
 
 	_, err = s.Db.AddFeed(ctx, newFeed)
@@ -70,7 +66,7 @@ func HandlerAddFeed(s *State, cmd Command) error {
 		ID: 		uuid.New(),
 		CreatedAt: 	nowTime,
 		UpdatedAt: 	nowTime,
-		UserID: 	userID.ID,
+		UserID: 	user.ID,
 		FeedID: 	newFeedID,	
 	}
 
@@ -79,16 +75,15 @@ func HandlerAddFeed(s *State, cmd Command) error {
 		return fmt.Errorf("error CreateFeedFollow, %w", err)
 	}
 
-
 	fmt.Printf("Feed: %s, created.\n", cmd.Args[0])
 	if b, err := json.MarshalIndent(newFeed, "", "  "); err == nil {
         fmt.Println(string(b))
     }
 
-
 	return nil
 }
 
+//Lists all feeds configured
 func HandlerListFeeds(s *State, cmd Command) error {
 	if len(cmd.Args) != 0 {
 		return fmt.Errorf("feeds command requires no args")

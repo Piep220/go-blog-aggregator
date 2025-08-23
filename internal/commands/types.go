@@ -18,6 +18,7 @@ type Command struct {
 
 //Template for handlerFunctions
 type handlerFn func(s *State, cmd Command) error
+type handlerLoggedIn func(s *State, cmd Command, user database.User) error
 
 //List of commands available to run
 type commands struct {
