@@ -3,7 +3,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
-	"encoding/xml"
+	//"encoding/xml"
 	"fmt"
 	"net/url"
 	"time"
@@ -11,24 +11,59 @@ import (
 	"github.com/Piep220/go-blog-aggregator/internal/database"
 )
 
+//Use in loop, updates feeds by oldest first
+func scrapeFeeds(s *State, ctx context.Context) error {
+	//Get next feed from DB
+	nextFeed, err := s.Db.GetNextFeedToFetch(ctx)
+	if err != nil {
+		return fmt.Errorf("error getting next feed: %s", err)
+	}
+
+	//Mark fetched
+	err = s.Db.MarkFeedFetched(ctx, nextFeed.ID)
+	if err != nil {
+		return fmt.Errorf("error marking fetched: %s", err)
+	}
+
+	//Fetch using fetchfeed
+	feed, err := fetchFeed(ctx, nextFeed.Url)
+	if err!= nil {
+		return fmt.Errorf("error fetching url feed: %s", err)
+	}
+
+	//Iterate over feed, print titles
+	for _, item := range feed.Channel.Item {
+		fmt.Printf("%s\n", item.Title)
+	}
+
+	return nil
+}
+
 //Aggregator func
 func HandlerAggregator(s *State, cmd Command) error {
-	if len(cmd.Args) != 0 {
-		return fmt.Errorf("agg command requires no args")
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("agg command requires one arg: time_between_req")
 	}
 
-	rssURL := "https://www.wagslane.dev/index.xml"
+	interval, err := time.ParseDuration(cmd.Args[0])
+	if err != nil {
+		fmt.Printf("error parsing time, string format: 1s, 2m, etc.")
+	}
+
 	ctx := context.Background()
 
-	feed, err := fetchFeed(ctx, rssURL)
-	if err != nil {
-		fmt.Printf("error getting rss: %s", err)
+	fmt.Printf("Collecting feeds every: %s\n", interval)
+	ticker := time.NewTicker(interval)
+	for ; ; <-ticker.C {
+		fmt.Printf("Running scraper\n")
+		scrapeFeeds(s, ctx)
 	}
 
-	feed.Unescape()
+	//feed.Unescape()
 
-	b, _ := xml.MarshalIndent(feed, "", "  ")
-	fmt.Println(string(b))
+	//b, _ := xml.MarshalIndent(feed, "", "  ")
+	//fmt.Println(string(b))
+
 	return nil
 }
 
@@ -104,7 +139,7 @@ func HandlerListFeeds(s *State, cmd Command) error {
 	for _, feed := range feeds {
 		fmt.Printf("Name: %s\n", feed.Name)
 		fmt.Printf("URL:  %s\n", feed.Url)
-		fmt.Printf("Created by: %s\n\n", feed.Name_2.String)
+		fmt.Printf("Created by: %s\n\n", feed.UserName.String)
 	}
 	return nil
 }

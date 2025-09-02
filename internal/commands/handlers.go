@@ -19,7 +19,7 @@ func HandlerLogin(s *State, cmd Command) error {
 	ctx := context.Background()
 	_, err := s.Db.GetUser(ctx, userName)
 	if err != nil {
-		fmt.Printf("user not found, with error: %s\n", err)
+		return fmt.Errorf("user not found, with error: %s", err)
 	}
 
 	err = s.Cfg.SetUser(userName)

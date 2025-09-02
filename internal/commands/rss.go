@@ -25,7 +25,7 @@ type RSSItem struct {
 	PubDate     string `xml:"pubDate"`
 }
 
-//Fetch RSSFeed from URL
+//Fetch RSSFeed from URL, takes time_between time.ParseDuration
 func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", feedURL, nil)
     if err != nil {
