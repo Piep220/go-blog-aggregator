@@ -2,13 +2,20 @@ package commands
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"strconv"
+	"strings"
+
 	//"encoding/xml"
 	"fmt"
 	"net/url"
 	"time"
-	"github.com/google/uuid"
+
 	"github.com/Piep220/go-blog-aggregator/internal/database"
+	"github.com/google/uuid"
+
+	"github.com/araddon/dateparse"
 )
 
 //Use in loop, updates feeds by oldest first
@@ -30,11 +37,75 @@ func scrapeFeeds(s *State, ctx context.Context) error {
 	if err!= nil {
 		return fmt.Errorf("error fetching url feed: %s", err)
 	}
-
+	/*
 	//Iterate over feed, print titles
 	for _, item := range feed.Channel.Item {
 		fmt.Printf("%s\n", item.Title)
 	}
+	*/
+
+	//Save feeds
+	for _, item := range feed.Channel.Item {
+		paresedTime, err := dateparse.ParseAny(item.PubDate)
+		if err != nil {
+			return fmt.Errorf("error parsing time in scrape feeds: %w", err)
+		}
+		post := database.CreatePostParams{
+			ID: uuid.New(),
+			CreatedAt:  time.Now(),
+    		UpdatedAt: time.Now(),
+    		Title: item.Title,
+    		Url: item.Link,
+    		Description: sql.NullString{String: item.Description, Valid: item.Description != ""},
+    		PublishedAt: paresedTime,
+    		FeedID: nextFeed.ID,
+		}
+		_, err = s.Db.CreatePost(ctx, post)
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				continue
+			}
+			fmt.Printf("error scrapeFeed creating post: %s", err)
+			continue
+		}
+	}
+	return nil
+}
+
+//Brows posts, shows (default 2) posts
+func HandlerBrowse(s *State, cmd Command, user database.User) error {
+	if len(cmd.Args) > 1 {
+		return fmt.Errorf("browse command requires zero or one arg: limit count")
+	}
+
+	browseLimit := 2
+	if len(cmd.Args) == 1 {
+		intArg, err := strconv.Atoi(cmd.Args[0])
+		if err != nil {
+			return fmt.Errorf("failure to convert arg to int: %w", err)
+		}
+		browseLimit = intArg
+	}
+
+	ctx := context.Background()
+	getPostParams := database.GetPostsForUserByNameParams{
+		Name: user.Name,
+		Limit: int32(browseLimit),
+	}
+	results, err := s.Db.GetPostsForUserByName(ctx, getPostParams)
+	if err != nil {
+		return fmt.Errorf("error getting posts: %w", err)
+	}
+
+	fmt.Printf("Found %d posts for user %s:\n", len(results), user.Name)
+	for _, post := range results {
+		fmt.Printf("%s\n", post.PublishedAt.Format("Mon Jan 2"))
+		fmt.Printf("--- %s ---\n", post.Title)
+		fmt.Printf("    %v\n", post.Description.String)
+		fmt.Printf("Link: %s\n", post.Url)
+		fmt.Println("=====================================")
+	}
+
 
 	return nil
 }
@@ -64,7 +135,7 @@ func HandlerAggregator(s *State, cmd Command) error {
 	//b, _ := xml.MarshalIndent(feed, "", "  ")
 	//fmt.Println(string(b))
 
-	return nil
+	//return nil
 }
 
 //Add feed by URL for MiddlewareLoggedIn user
